@@ -885,7 +885,7 @@ struct enode * new(int op, struct enode * a1, struct enode * a2) {
     p->e.o.left = a1;
     p->e.o.right = a2;
     p->e.o.s = NULL;
-    p->e.v.sheet = a1->e.v.sheet;
+    p->e.v.sheet = a1 != NULL ? a1->e.v.sheet : NULL;
     return p;
 }
 
