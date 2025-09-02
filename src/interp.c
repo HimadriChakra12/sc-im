@@ -370,15 +370,15 @@ double eval(struct sheet * sh, struct ent * ent, struct enode * e, int rebuild_g
 
         for (row=minr; ent != NULL && row <= maxr; row++) {
             for (col=minc; col <= maxc; col++) {
-                if (ent->row == row && ent->col == col && e->e.v.sheet == sh) {
+                struct sheet * sh_vp = e->e.v.sheet;
+                if (ent->row == row && ent->col == col && sh_vp == sh) {
                     sc_error("Circular reference in eval (cell %s%d)", coltoa(col), row);
                     e->op = ERR_;
                     cellerror = CELLERROR;
                     return (double) 0;
                 }
                 GraphAddEdge(getVertex(graph, sh, lookat(sh, ent->row, ent->col), 1),
-                    getVertex(graph, sh, lookat(sh, row, col), 1));
-                        // new getVertex(graph, sh_vp, lookat(sh_vp, row, col), 1));
+                    getVertex(graph, sh_vp, lookat(sh_vp, row, col), 1));
             }
         }
 
