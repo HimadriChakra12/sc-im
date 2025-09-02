@@ -370,7 +370,7 @@ double eval(struct sheet * sh, struct ent * ent, struct enode * e, int rebuild_g
 
         for (row=minr; ent != NULL && row <= maxr; row++) {
             for (col=minc; col <= maxc; col++) {
-                if (ent->row == row && ent->col == col) {
+                if (ent->row == row && ent->col == col && e->e.v.sheet == sh) {
                     sc_error("Circular reference in eval (cell %s%d)", coltoa(col), row);
                     e->op = ERR_;
                     cellerror = CELLERROR;
