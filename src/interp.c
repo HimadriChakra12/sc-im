@@ -700,7 +700,8 @@ char * seval(struct sheet * sh, struct ent * ent, struct enode * se, int rebuild
         minc = se->e.o.left->e.r.left.vp->col;
         if (minr>maxr) r = maxr, maxr = minr, minr = r;
         if (minc>maxc) c = maxc, maxc = minc, minc = c;
-        return dostindex(sh, minr, minc, maxr, maxc, se->e.o.right);
+        sh_vp = se->e.v.sheet;
+        return dostindex(sh_vp, minr, minc, maxr, maxc, se->e.o.right);
     }
     case EXT:
              if (rebuild_graph && getVertex(graph, sh, ent, 0) == NULL) GraphAddVertex(graph, sh, ent);
