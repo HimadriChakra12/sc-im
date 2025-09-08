@@ -1507,6 +1507,112 @@ Commands for handling cell content:
     @cols({range})
         Count the number of rows or columns.
 
+    @lookup(e,r)
+    @lookup(r,e)
+    @lookup(se,r)
+    @lookup(r,se)
+        Evaluates the expression then searches through the range r for a matching value.
+        The range should be either a single row or a single column. The expression can be
+        either a string expression or a numeric expression.
+        If it is a numeric expression, the range is searched for the the last value less
+        than or equal to e. If the expression is a string expression, the string portions
+        of the cells in the range are searched for an exact string match.
+        The value returned is the numeric value from the next row and the same column
+        as the match, if the range was a single row, or the value from the next column
+        and the same row as the match if the range was a single column.
+
+        Example: if range A1:A9 contains item names, and B1:B9 contains prices,
+        you will find the price of the pen with @lookup(A1:A9, "pen")
+
+        Limitations:
+
+        This function can only be used to find a numeric value right next to
+        column range r, or right below row range r. Use @hlookup or @vlookup for
+        for matches of n rows/columns after range r.
+
+        When looking for a numeric match, the range should be sorted
+        in ascending order. If this is the case, @lookup(A1:A9,10) will return:
+        - 0 if 10 is smaller than the lowest value in the range, or
+        - the value in column B at the row of the last 10 if 10 is in the range, or
+        - the value in column B at the row of the last and heighest value less than 10
+          if 10 is not in the range
+
+    @hlookup(e,r,n)
+    @hlookup(r,e,n)
+    @hlookup(se,r,n)
+    @hlookup(r,se,n)
+        Evaluates the expression then searches through the first row in the range r for a
+        matching value. The expression can be either a string expression or a numeric expression.
+        If it is a numeric expression, the row is searched for the the last value less than
+        or equal to e. If the expression is a string expression, the string portions of the cells
+        in the row are searched for an exact string match. The value returned is the numeric value
+        from the same column n rows below the match. A negative value of n can be used
+        to find a value n rows above the match.
+
+        Limitation: when looking for a numeric match, the column values of the
+        first row in range r should be sorted in ascending order. See @lookup
+        for more information about "last value less than or equal to e".
+
+        See @vlookup below for an example
+
+    @vlookup(e,r,n)
+    @vlookup(r,e,n)
+    @vlookup(se,r,n)
+    @vlookup(r,se,n)
+        Evaluates the expression then searches through the first column in the range r for a
+        matching value. The expression can be either a string expression or a numeric expression.
+        If it is a numeric expression, the column is searched for the the last value less than
+        or equal to e. If the expression is a string expression, the string portions of the cells
+        in the column are searched for an exact string match. The value returned is the numeric
+        value from the same row n columns to the right of the match. A negative value of n
+        can be used to find a value n columns to the left of the match.
+
+        Limitation: when looking for a numeric match, the row values of the
+        first column in range r should be sorted in ascending order. See @lookup
+        for more information about "last value less than or equal to e".
+
+        Example:
+        We have a table in A0:F10 with sales data.
+        The first row contains the column names: number, year, jan, feb, mar, apr.
+        The first column contains numbers 1 to 10. We will use this column
+        to find n: the number of rows to skip in @vlookup
+        The second column contains years 2016 to 2025.
+        The other cells contain the sales data of year x month y
+
+        What was the result of march 2018?
+        We can use @hlookup to find the column of march, and @vlookup to find
+        the number of rows to skip, corresponding to the year of 2018:
+
+        @hlookup(A0:F10, "mar", @vlookup(B1:F10, 2018, -1))
+
+        In this example our year column is numeric, and numeric values follow
+        the "less than or equal" rule, so we could have found the
+        number of rows to skip without the number column with @count like this:
+
+        @hlookup(A0:F10, "mar", @count(B1:F10, B1<=2018))
+
+
+    @index(e1,r)
+    @index(r,e1)
+    @index(r,e1,e2)
+        Use the values of expressions e1 and (optionally) e2 to index into the range r. The numeric
+        value at that position is returned. With two arguments, the range should be either a single
+        row or a single column. An expression with the value 1 selects the first item in the range,
+        2 selects the second item, etc. With three arguments, the range must come first, and the
+        second and third arguments will then be interpreted as row and column, respectively,
+        for indexing into a two-dimensional table.
+
+    @stindex(e1,r)
+    @stindex(r,e1)
+    @stindex(r,e1,e2)
+        Use the values of expressions e1 and (optionally) e2 to index into the range r. The string
+        value at that position is returned. With two arguments, the range should be either a single
+        row or a single column. An expression with the value 1 selects the first item in the range,
+        2 selects the second item, etc. With three  arguments, the range must come first, and the
+        second and third arguments will then be interpreted as row and column, respectively,
+        for indexing into a two-dimensional table.
+
+
 ==============================================================================
 &Built-in Numeric Functions&
 
