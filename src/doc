@@ -1564,7 +1564,7 @@ Commands for handling cell content:
         If it is a numeric expression, the column is searched for the the last value less than
         or equal to e. If the expression is a string expression, the string portions of the cells
         in the column are searched for an exact string match. The value returned is the numeric
-        value from the same row n columns to the right of the match. A negative value of n
+        value from the same row n columns to the right of the match. A negative value of n 
         can be used to find a value n columns to the left of the match.
 
         Limitation: when looking for a numeric match, the row values of the
@@ -1574,20 +1574,20 @@ Commands for handling cell content:
         Example:
         We have a table in A0:F10 with sales data.
         The first row contains the column names: number, year, jan, feb, mar, apr.
-        The first column contains numbers 1 to 10. We will use this column
+        The first column contains numbers 1 to 10. We will use this column 
         to find n: the number of rows to skip in @vlookup
         The second column contains years 2016 to 2025.
         The other cells contain the sales data of year x month y
 
         What was the result of march 2018?
-        We can use @hlookup to find the column of march, and @vlookup to find
+        We can use @hlookup to find the column of march, and @vlookup to find 
         the number of rows to skip, corresponding to the year of 2018:
 
         @hlookup(A0:F10, "mar", @vlookup(B1:F10, 2018, -1))
-
+        
         In this example our year column is numeric, and numeric values follow
         the "less than or equal" rule, so we could have found the
-        number of rows to skip without the number column with @count like this:
+        number of rows to skip without the number column with @count like this: 
 
         @hlookup(A0:F10, "mar", @count(B1:F10, B1<=2018))
 
@@ -1602,6 +1602,17 @@ Commands for handling cell content:
         second and third arguments will then be interpreted as row and column, respectively,
         for indexing into a two-dimensional table.
 
+        Example
+        In B1:F10 we have our sales data from the previous example. 
+        In B21:F30 we want the same values, but the rows in reversed order. 
+        We can use a combination of @frow, @fcol and @index to get there.
+
+        - In B21: =@index($B$1:$F$10,11-@frow(B1),@fcol(B1))
+        - copy the cell with yy
+        - enter visual mode with v
+        - navigate with j to B30 and with l to F30
+        - paste with P
+
     @stindex(e1,r)
     @stindex(r,e1)
     @stindex(r,e1,e2)
@@ -1611,6 +1622,29 @@ Commands for handling cell content:
         2 selects the second item, etc. With three  arguments, the range must come first, and the
         second and third arguments will then be interpreted as row and column, respectively,
         for indexing into a two-dimensional table.
+
+        Example
+        In sheet DEPT, range A0:D4 we have a departments table, with columns rownumber, ID, 
+        name and location. In sheet EMP, range A0:E14 we have an employees table, with DEPT_ID 
+        in column E. In column F of the EMP sheet, we want to see the department names.
+        We need a combination of stindex and @vlookup
+
+        In parts:
+        - @stindex will look in column C of DEPT for a department name
+        - @vlookup will try to find a match of DEPT_ID in column E of the EMP sheet 
+          within the ID column B in the DEPT sheet. Remember the "smaller than
+          or equal to" way of finding a match: with +1 in the formula we get
+          the match correponding to the right row. 
+        - Still within @vlookup, we use -1 as the last argument: @stindex
+          needs the row number corresponding to the found match, and it is in
+          column A, one column to the left.
+
+        - In F1 of the EMP sheet: 
+          \"stindex({"DEPT"}!$C$1:{"DEPT"}!$C$4,@vlookup({"DEPT"}!$B$1:{"DEPT"}!$B$4, E1+1, -1))
+        - copy the cell with yy
+        - use v to enter visual mode
+        - enter h # l to select the whole column
+        - use P to paste the formula to column F
 
 
 ==============================================================================
