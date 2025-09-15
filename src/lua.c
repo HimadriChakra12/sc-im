@@ -263,8 +263,8 @@ static int l_colrow(lua_State *L) {
     int c, r;
     int ret, len;
     val = (char *) lua_tostring(L,1);
-    sc_debug(" %s ", val);
-    ret = sscanf(val,"%49[a-za-Z]%d",buf,&r);
+    sc_debug(".%s.", val);
+    ret = sscanf(val,"%[a-za-Z]%d",buf,&r);
     sc_debug("scanf ret %d",ret);
     len=strlen(buf);
     c = (toupper((int)buf[0])) - 'A';
