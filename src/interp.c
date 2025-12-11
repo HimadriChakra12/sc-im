@@ -721,7 +721,9 @@ char * seval(struct sheet * sh, struct ent * ent, struct enode * se, int rebuild
                           seval(sh, NULL, se->e.o.right->e.o.left, 0),
                           seval(sh, NULL, se->e.o.right->e.o.right, 0)));
 
-    case SUBSTR: return (dosubstr(seval(sh, ent, se->e.o.left, rebuild_graph),
+    case SUBSTR:
+                 if (rebuild_graph && getVertex(graph, sh, ent, 0) == NULL) GraphAddVertex(graph, sh, ent);
+				 return (dosubstr(seval(sh, ent, se->e.o.left, rebuild_graph),
                 (int) eval(sh, NULL, se->e.o.right->e.o.left, 0) - 1,
                 (int) eval(sh, NULL, se->e.o.right->e.o.right, 0) - 1));
 
