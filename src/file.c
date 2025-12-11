@@ -243,7 +243,7 @@ int savefile() {
 
 #ifndef NO_WORDEXP
     int rc;
-    if((rc=wordexp(name, &p, 0))==0){;
+    if((rc=wordexp(name, &p, 0))!=0){;
         sc_error("Failed expanding filepath: %s",worderror(rc));
         return -1;
     }
