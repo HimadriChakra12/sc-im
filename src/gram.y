@@ -219,6 +219,7 @@ token S_YANKCOL
 %token S_PREVSHEET
 %token S_DELSHEET
 %token S_MOVETOSHEET
+%token S_MOVESHEET
 %token S_RENAMESHEET
 %token S_NMAP
 %token S_VMAP
@@ -901,13 +902,20 @@ command:
                                    ui_update(TRUE);
                                  }
 
-    |    S_MOVETOSHEET STRING    {
-                                   struct sheet * sh;
-                                   if ((sh = search_sheet(session->cur_doc, $2)) != NULL )
-                                       session->cur_doc->cur_sh = sh;
-                                   scxfree($2);
-                                 }
-    |    S_RENAMESHEET STRING    {
+     |    S_MOVETOSHEET STRING    {
+                                    struct sheet * sh;
+                                    if ((sh = search_sheet(session->cur_doc, $2)) != NULL )
+                                        session->cur_doc->cur_sh = sh;
+                                    scxfree($2);
+                                  }
+     |    S_MOVESHEET NUMBER       {
+                                    struct roman * roman = session->cur_doc;
+                                    move_sheet_to_position(roman, $2);
+                                    roman->modflg++;
+                                    chg_mode('.');
+                                    ui_update(TRUE);
+                                  }
+     |    S_RENAMESHEET STRING    {
                                    struct sheet * sh = session->cur_doc->cur_sh;
                                    if (sh->name != NULL) free(sh->name);
                                    session->cur_doc->modflg++;

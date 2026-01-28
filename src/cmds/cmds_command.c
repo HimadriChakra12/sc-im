@@ -143,6 +143,8 @@ L"iunmap",
 L"load!",
 L"load",
 L"lock",
+L"movesheet",
+L"movetosheet",
 L"newsheet",
 L"nextsheet",
 L"nmap",
@@ -968,7 +970,9 @@ void do_commandmode(struct block * sb) {
             get_mappings(valores);
             ui_show_text(valores);
 
-        } else if ( ! wcsncmp(inputline, L"newsheet", 8) ||
+        } else if ( ! wcsncmp(inputline, L"movesheet", 9) ||
+                    ! wcsncmp(inputline, L"movetosheet", 10) ||
+                    ! wcsncmp(inputline, L"newsheet", 8) ||
                     ! wcsncmp(inputline, L"delsheet", 8) ||
                     ! wcsncmp(inputline, L"nextsheet", 9) ||
                     ! wcsncmp(inputline, L"renamesheet", 11) ||

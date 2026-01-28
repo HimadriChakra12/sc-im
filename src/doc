@@ -566,6 +566,12 @@ Commands for handling cell content:
      :renamesheet "{name}"
                  rename the current sheet to {name}.
 
+     :movesheet {position}
+                 Moves the current sheet to the specified position (0-based) in the sheet list.
+
+     :movetosheet "{name}"
+                 Switches to the sheet with the given name.
+
      :showmaps   Show all key mappings.
 
      :nmap {lhs} {rhs}
