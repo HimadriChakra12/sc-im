@@ -415,7 +415,7 @@ void read_stdin() {
     readfds = savefds;
     if (f != NULL) fclose(f);
 
-    if ( ! freopen("/dev/tty", "rw", stdin)) {
+    if ( ! freopen("/dev/tty", "rw", stdin) && ! get_conf_int("quit_afterload")) {
         perror(NULL);
         exit(-1);
     }
