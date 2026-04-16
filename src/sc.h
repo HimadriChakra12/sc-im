@@ -495,6 +495,7 @@ extern void colshow_op();
 extern struct colorpair *cpairs[8];
 extern void efree(struct enode * e);
 extern void label(struct ent * v, char * s, int flushdir);
+extern int move_sheet_to_position(struct roman * doc, int position);
 
 extern double eval_result;
 extern char * seval_result;

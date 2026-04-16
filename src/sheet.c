@@ -232,3 +232,47 @@ void delete_sheet(struct roman * roman, struct sheet * sh, int flg_free) {
     return;
 }
 
+/**
+ * \brief move_sheet_to_position()
+ * \param[doc] roman struct
+ * \param[position] 0-based position to move current sheet to
+ * \return int 0 on success
+ */
+int move_sheet_to_position(struct roman * doc, int position) {
+    struct sheet * sh = doc->cur_sh;
+    int num_sheets = get_num_sheets(doc);
+    if (num_sheets <= 1) return 0; // nothing to do
+
+    if (position < 0) position = 0;
+    if (position >= num_sheets) position = num_sheets - 1;
+
+    // remove from list
+    REMOVE(sh, doc->first_sh, doc->last_sh, next, prev);
+
+    // now insert at position
+    if (position == 0) {
+        // insert at beginning
+        INSERT_BEFORE(sh, doc->first_sh, doc->last_sh, next, prev);
+    } else {
+        // find the sheet before position
+        struct sheet * prev = doc->first_sh;
+        int i = 1;
+        while (prev && i < position) {
+            prev = prev->next;
+            i++;
+        }
+        // now prev is the sheet at position-1, insert after it
+        if (prev) {
+            sh->next = prev->next;
+            sh->prev = prev;
+            if (prev->next) prev->next->prev = sh;
+            prev->next = sh;
+            if (sh->next == NULL) doc->last_sh = sh;
+        } else {
+            // shouldn't happen
+            INSERT(sh, doc->first_sh, doc->last_sh, next, prev);
+        }
+    }
+    return 0;
+}
+

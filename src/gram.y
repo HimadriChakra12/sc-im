@@ -219,6 +219,7 @@ token S_YANKCOL
 %token S_PREVSHEET
 %token S_DELSHEET
 %token S_MOVETOSHEET
+%token S_MOVESHEET
 %token S_RENAMESHEET
 %token S_NMAP
 %token S_VMAP
@@ -901,13 +902,20 @@ command:
                                    ui_update(TRUE);
                                  }
 
-    |    S_MOVETOSHEET STRING    {
-                                   struct sheet * sh;
-                                   if ((sh = search_sheet(session->cur_doc, $2)) != NULL )
-                                       session->cur_doc->cur_sh = sh;
-                                   scxfree($2);
-                                 }
-    |    S_RENAMESHEET STRING    {
+     |    S_MOVETOSHEET STRING    {
+                                    struct sheet * sh;
+                                    if ((sh = search_sheet(session->cur_doc, $2)) != NULL )
+                                        session->cur_doc->cur_sh = sh;
+                                    scxfree($2);
+                                  }
+     |    S_MOVESHEET NUMBER       {
+                                    struct roman * roman = session->cur_doc;
+                                    move_sheet_to_position(roman, $2);
+                                    roman->modflg++;
+                                    chg_mode('.');
+                                    ui_update(TRUE);
+                                  }
+     |    S_RENAMESHEET STRING    {
                                    struct sheet * sh = session->cur_doc->cur_sh;
                                    if (sh->name != NULL) free(sh->name);
                                    session->cur_doc->modflg++;
@@ -1276,13 +1284,13 @@ term:   var                       {
                                     if ($1.vf & GET_ENT)
                                         $$ = $1.expr;
                                     else {
-                                       $1.sheet = NULL;
                                        $$ = new_var(O_VAR, $1);
                                        $$->e.r.left.expr = NULL;
                                        $$->e.r.right.expr = NULL;
                                     }
                                   }
 
+/*
         | '{' STRING '}' '!' var  {
                                     struct roman * roman = session->cur_doc;
                                     struct sheet * sh;
@@ -1296,11 +1304,12 @@ term:   var                       {
                                         $$->e.r.right.expr = NULL;
                                         scxfree($2);
                                     } else {
-                                        //sc_debug("not sheet found");
+                                        sc_debug("not sheet found");
                                         $$ = NULL;
                                         scxfree($2);
                                     }
                                   }
+                                  */
 
         | '@' K_FIXED term        { $$ = new('f', $3, ENULL); }
 
@@ -1309,6 +1318,8 @@ term:   var                       {
 
         | '@' K_SUM '(' var_or_range ')'
                                   { $$ = new(SUM, new_range(REDUCE | SUM, $4), ENULL); }
+                                      // $$->e.v.sheet = $4.left.sheet;
+                                      // previous not neede because its handled on new()
         | '@' K_SUM  '(' range ',' e ')'
                                   { $$ = new(SUM, new_range(REDUCE | SUM, $4), $6); }
         | '@' K_PROD '(' var_or_range ')'
@@ -1506,31 +1517,37 @@ range:   var ':' var              {
                                     $$.right = $3;
                                   }
     |    RANGE                    { $$ = $1; }
-    ;
 
+    ;
 var:
 
-          COL NUMBER               {
+    COL NUMBER                    {
                                     struct roman * roman = session->cur_doc;
                                     $$.vp = lookat(roman->cur_sh, $2, $1);
                                     $$.vf = 0;
+                                    $$.sheet = roman->cur_sh;
                                   }
+
     |    '$' COL NUMBER           {
                                     struct roman * roman = session->cur_doc;
                                     $$.vp = lookat(roman->cur_sh, $3, $2);
                                     $$.vf = FIX_COL;
+                                    $$.sheet = roman->cur_sh;
                                   }
+
     |    COL '$' NUMBER           {
                                     struct roman * roman = session->cur_doc;
                                     $$.vp = lookat(roman->cur_sh, $3, $1);
                                     $$.vf = FIX_ROW;
+                                    $$.sheet = roman->cur_sh;
                                   }
+
     |    '$' COL '$' NUMBER       {
                                     struct roman * roman = session->cur_doc;
                                     $$.vp = lookat(roman->cur_sh, $4, $2);
                                     $$.vf = FIX_ROW | FIX_COL;
+                                    $$.sheet = roman->cur_sh;
                                   }
-
 
     | '@' K_GETENT '(' e ',' e ')' {
                                     struct roman * roman = session->cur_doc;
@@ -1539,6 +1556,48 @@ var:
                                     $$.vf = GET_ENT;
                                     if ($$.expr != NULL) efree($$.expr);
                                     $$.expr = new(GETENT, $4, $6);
+                                    $$.sheet = sh;
+                                  }
+
+    |    '{' STRING '}' '!' COL NUMBER
+                                  {
+                                    struct roman * roman = session->cur_doc;
+                                    struct sheet * sh;
+                                    if ((sh = search_sheet(roman, $2)) == NULL ) sh = roman->cur_sh;
+                                    $$.vp = lookat(sh, $6, $5);
+                                    $$.vf = 0;
+                                    $$.sheet = sh;
+                                    scxfree($2);
+                                  }
+
+    |    '{' STRING '}' '!' '$' COL NUMBER {
+                                    struct roman * roman = session->cur_doc;
+                                    struct sheet * sh;
+                                    if ((sh = search_sheet(roman, $2)) == NULL ) sh = roman->cur_sh;
+                                    $$.vp = lookat(sh, $7, $6);
+                                    $$.vf = FIX_COL;
+                                    $$.sheet = sh;
+                                    scxfree($2);
+                                  }
+
+    |    '{' STRING '}' '!' COL '$' NUMBER {
+                                    struct roman * roman = session->cur_doc;
+                                    struct sheet * sh;
+                                    if ((sh = search_sheet(roman, $2)) == NULL ) sh = roman->cur_sh;
+                                    $$.vp = lookat(sh, $7, $5);
+                                    $$.vf = FIX_ROW;
+                                    $$.sheet = sh;
+                                    scxfree($2);
+                                  }
+
+    |    '{' STRING '}' '!' '$' COL '$' NUMBER {
+                                    struct roman * roman = session->cur_doc;
+                                    struct sheet * sh;
+                                    if ((sh = search_sheet(roman, $2)) == NULL ) sh = roman->cur_sh;
+                                    $$.vp = lookat(sh, $8, $6);
+                                    $$.vf = FIX_ROW | FIX_COL;
+                                    $$.sheet = sh;
+                                    scxfree($2);
                                   }
 
     |    VAR                      {

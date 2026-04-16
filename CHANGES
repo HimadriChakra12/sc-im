@@ -19,8 +19,16 @@ this could allow future use of registers to copy to and paste from.
 + registers for yanking
 + use yanklist for added/removed in undo?
 
+*********
+v0.8.6
+01/28/2026: Added movesheet and movetosheet commands
+11/12/2025: fix in graph when using @SUBSTR
+            fix wordexp return value
+02/06/2025: fix in autoevaluation of functions @slen @substr
+            fix in interp.c:new() when a1 is NULL
 
-***********
+
+*********
 v0.8.5
 05/05/2025: fixed ‘zip_error_to_str’ deprecated message
             changed do_autobackup definition

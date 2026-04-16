@@ -586,7 +586,7 @@ int same_ucolor(struct ucolor * u, struct ucolor * v) {
 int redefine_color(char * color, int r, int g, int b) {
     struct roman * roman = session->cur_doc;
     #if defined(NCURSES) && defined(USECOLORS)
-    extern void sig_winchg();
+    extern void sig_winchg(int signum);
     if (
         ! get_conf_int("nocurses")
         && has_colors() && can_change_color()
@@ -601,7 +601,7 @@ int redefine_color(char * color, int r, int g, int b) {
 #else
            if (init_color(atoi(s), RGB(r, g, b)) == 0) {
 #endif
-               sig_winchg();
+               sig_winchg(0);
                if (! roman->loading) sc_info("Color %s redefined to %d %d %d.", color, r, g, b);
                return 0;
            }
