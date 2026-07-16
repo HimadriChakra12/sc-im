@@ -17,6 +17,7 @@
 #include "pipe.h"
 #include "main.h"
 #include "file.h"
+#include "formats/xlsx.h"
 #include "tui.h"
 #include "undo.h"
 #include "yank.h"
@@ -1175,9 +1176,16 @@ command:
                                      scxfree($2);
                                    }
     |    S_EXPORT STRING STRING    {
-                                     struct roman * roman = session->cur_doc;
-                                     swprintf(inputline, BUFFERSIZE, L"e! %s %s", $2, $3);
-                                     do_export(0, 0, roman->cur_sh->maxrow, roman->cur_sh->maxcol);
+                                     char fmt[20];
+                                     sprintf(fmt, "%s", $2);
+#ifdef XLSX_EXPORT
+                                     if (! strcasecmp(fmt, "xlsx")) {
+                                         char fn[PATHLEN];
+                                         sprintf(fn, "%s", $3);
+                                         export_xlsx(fn);
+                                     } else
+#endif
+                                         sc_error("Only xlsx export is supported in this build.");
                                      scxfree($2);
                                      scxfree($3);
                                    }

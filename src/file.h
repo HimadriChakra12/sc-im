@@ -57,11 +57,10 @@ char * findhome(char *path);
 int backup_file(char *path);
 void closefile(FILE *f, int pid, int rfd);
 void print_options(FILE *f);
-void do_export(int r0, int c0, int rn, int cn);
+// export_delim is kept only as an internal helper (used by the gnuplot
+// "plot" feature to write its temporary data file); it is not exposed
+// as a user-facing file format now that this fork is Excel-only.
 void export_delim(char * fname, char coldelim, int r0, int c0, int rn, int cn, int verbose);
-void export_plain(char * fname, int r0, int c0, int rn, int cn);
-void export_markdown(char * fname, int r0, int c0, int rn, int cn);
-void export_latex(char * fname, int r0, int c0, int rn, int cn, int verbose);
 void unspecial(FILE * f, char * str, int delim);
 int max_length(FILE * f);
 int count_lines(FILE * f);
@@ -80,9 +79,7 @@ void load_tbl(char * loading_file);
 void erasedb(struct sheet * sheet, int _free);
 void load_rc(void);
 FILE * openfile(char *fname, int *rpid, int *rfd);
-int import_csv(char * fname, char d);
 int next_unquot_delim(char *start, char d);
-int import_markdown(char * fname);
 int create_empty_wb();
 //void readfile_argv(int argc, char ** argv);
 

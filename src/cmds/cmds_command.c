@@ -1078,20 +1078,6 @@ void do_commandmode(struct block * sb) {
             fsum(sh);
 
         } else if (
-            ! wcsncmp(inputline, L"e csv"  , 5) ||
-            ! wcsncmp(inputline, L"e! csv" , 6) ||
-            ! wcsncmp(inputline, L"e tex"  , 5) ||
-            ! wcsncmp(inputline, L"e! tex" , 6) ||
-            ! wcsncmp(inputline, L"e tab"  , 5) ||
-            ! wcsncmp(inputline, L"e! tab" , 6) ||
-            ! wcsncmp(inputline, L"e mkd"  , 4) ||
-            ! wcsncmp(inputline, L"e! mkd" , 5) ||
-            ! wcsncmp(inputline, L"e txt" , 5) ||
-            ! wcsncmp(inputline, L"e! txt" , 6) ) {
-                do_export( p == -1 ? 0 : sr->tlrow, p == -1 ? 0 : sr->tlcol,
-                p == -1 ? sh->maxrow : sr->brrow, p == -1 ? sh->maxcol : sr->brcol);
-
-        } else if (
             ! wcsncmp(inputline, L"e xlsx"  , 6) ||
             ! wcsncmp(inputline, L"e! xlsx" , 7)) {
                 #if defined(AUTOBACKUP) && defined(XLSX_EXPORT)

@@ -69,6 +69,7 @@
 #include "maps.h"
 #include "yank.h"
 #include "file.h"
+#include "formats/xlsx.h"
 #include "utils/dictionary.h"
 #include "utils/string.h"
 #include "history.h"
@@ -567,23 +568,15 @@ void read_argv(int argc, char ** argv) {
  * \return none
  */
 void handle_argv_exports() {
-    if (get_conf_value("export_csv") && session->cur_doc != NULL) {
-        export_delim(NULL, ',', 0, 0, session->cur_doc->cur_sh->maxrow, session->cur_doc->cur_sh->maxcol, 0);
-    }
-
-    if (get_conf_value("export_tab") && session->cur_doc != NULL) {
-        export_delim(NULL, '\t', 0, 0, session->cur_doc->cur_sh->maxrow, session->cur_doc->cur_sh->maxcol, 0);
-    }
-
-    if (get_conf_value("export_mkd") && session->cur_doc != NULL) {
-        export_markdown(NULL, 0, 0, session->cur_doc->cur_sh->maxrow, session->cur_doc->cur_sh->maxcol);
-    }
-
-    if ((get_conf_value("export") || get_conf_value("export_txt")) && session->cur_doc != NULL) {
-        export_plain(NULL, 0, 0, session->cur_doc->cur_sh->maxrow, session->cur_doc->cur_sh->maxcol);
+    if (get_conf_value("export_xlsx") && session->cur_doc != NULL) {
+#ifdef XLSX_EXPORT
+        export_xlsx(session->cur_doc->name);
+#endif
     }
     return;
 }
+
+
 
 
 /**

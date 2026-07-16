@@ -20,8 +20,8 @@ CONFIG_DIR= .config/sc-im
 CONFIG_FILE=scimrc
 
 # Change these to your liking or use `make CC=gcc` etc
-#CC   = cc
-#YACC = bison -y
+CC   = clang
+YACC = bison -y
 #SED  = sed
 
 LDLIBS += -lm
@@ -120,8 +120,9 @@ ifneq (, $(shell which pkg-config))
   endif
 
   # NOTE: libxml and libzip are required for xlsx file import support
+  # sc-im (this fork) is Excel-only: only XLSX/XLS are supported file formats.
   ifneq ($(shell pkg-config --exists libzip libxml-2.0 || echo 'no'),no)
-    CFLAGS += -DODS -DXLSX $(shell pkg-config --cflags libxml-2.0 libzip)
+    CFLAGS += -DXLSX $(shell pkg-config --cflags libxml-2.0 libzip)
     LDLIBS += $(shell pkg-config --libs libxml-2.0 libzip)
   endif
 

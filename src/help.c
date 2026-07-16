@@ -568,10 +568,7 @@ void show_usage_and_quit(){
 \n  --default_copy_to_clipboard_cmd=COMMAND  set variable 'default_copy_from_clipboard_cmd'\
 \n  --default_paste_from_clipboard_cmd=COMMAND  set variable 'default_paste_from_clipboard_cmd'\
 \n  --default_open_file_under_cursor_cmd=COMMAND  set variable 'default_open_file_under_cursor_cmd'\
-\n  --export_csv                Export to csv without interaction\
-\n  --export_tab                Export to tab without interaction\
-\n  --export_txt                Export to txt without interaction\
-\n  --export_mkd                Export to markdown without interaction\
+\n  --export_xlsx                Export to xlsx without interaction\
 \n  --external_functions        Set variable 'external_functions'\
 \n  --half_page_scroll          Set variable 'half_page_scroll'\
 \n  --ignorecase                Set variable 'ignorecase'\
@@ -584,8 +581,8 @@ void show_usage_and_quit(){
 \n  --overlap                   Set variable 'overlap variable'\
 \n  --quit_afterload            Quit after loading all the files\
 \n  --show_cursor               Make the screen cursor follow the active cell\
-\n  --tm_gmtoff={seconds}       set gmt offset used for converting datetimes to localtime.\
-\n  --txtdelim={\",\" or \";\" or \"\\t\" or \"|\"}  Sets delimiter when opening a .tab of .csv file");
+\n  --tm_gmtoff={seconds}       set gmt offset used for converting datetimes to localtime.");
+
 #ifdef XLSX
   printf("\n\
 \n  --sheet=SHEET               Open SHEET when loading xlsx file. Default is 1.\
