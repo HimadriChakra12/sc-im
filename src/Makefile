@@ -20,9 +20,20 @@ CONFIG_DIR= .config/xc
 CONFIG_FILE=scimrc
 
 # Change these to your liking or use `make CC=gcc` etc
-CC   = clang
-YACC = bison -y
+CC   := clang
+YACC := bison -y
 #SED  = sed
+
+# ---------------------------------------------------------------------------
+# Speed: use ccache when available, and build in parallel by default.
+# Override with `make -j1` if you want serial output for debugging.
+# ---------------------------------------------------------------------------
+ifneq (, $(shell which ccache 2>/dev/null))
+  CC := ccache $(CC)
+endif
+
+NPROC      := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+MAKEFLAGS  += -j$(NPROC) -Otarget --no-print-directory
 
 LDLIBS += -lm
 
@@ -53,6 +64,10 @@ CFLAGS += -DMAXROWS=65536
 CFLAGS += -DUSELOCALE
 # Comment out to enable mouse support on virtual terminal.
 CFLAGS += -DMOUSE
+
+# Auto-dependency tracking: only recompile .c files whose headers actually
+# changed instead of relying on the coarse "$(OBJS): y.tab.h ..." rule below.
+CFLAGS += -MMD -MP
 
 # Clipboard support is OS dependent.
 #
@@ -163,9 +178,64 @@ else
   LDFLAGS += -lncursesw
 endif
 
-OBJS = $(patsubst %.c, %.o, $(wildcard *.c) $(wildcard actions/*.c) $(wildcard formats/*.c) $(wildcard cmds/*.c) $(wildcard utils/*.c)) gram.o
+SRCS = $(filter-out gram.c, $(wildcard *.c)) $(wildcard actions/*.c) $(wildcard formats/*.c) $(wildcard cmds/*.c) $(wildcard utils/*.c)
+OBJS = $(patsubst %.c, %.o, $(SRCS)) gram.o
+DEPS = $(OBJS:.o=.d)
 
-.PHONY : all clean install docs man_install man_uninstall
+# ---------------------------------------------------------------------------
+# Pretty, timed build output (sxbv-style)
+# ---------------------------------------------------------------------------
+BOLD   = \033[1m
+DIM    = \033[2m
+CYAN   = \033[1;36m
+GREEN  = \033[1;32m
+ORANGE = \033[38;5;208m
+RESET  = \033[0m
+
+COUNT_FILE  := /tmp/.$(name)-build-count
+LOCK_FILE   := /tmp/.$(name)-build.lock
+TOTAL_OBJS  := $(words $(OBJS))
+CTR_W       := $(shell printf "%s" "$(TOTAL_OBJS)" | wc -c | tr -d ' ')
+
+# Reset the counter once per invocation, at parse time, before any recipe runs.
+$(shell rm -f $(COUNT_FILE))
+
+define compile_c
+	@t0=$$(date +%s%N); \
+	out=$$($(CC) $(CFLAGS) -c $< -o $@ 2>&1); rc=$$?; \
+	t1=$$(date +%s%N); ms=$$(( (t1 - t0) / 1000000 )); \
+	( \
+		flock -w 10 200; \
+		n=$$(( $$(cat $(COUNT_FILE) 2>/dev/null || echo 0) + 1 )); \
+		printf "%d" $$n > $(COUNT_FILE); \
+		if [ $$rc -eq 0 ]; then \
+			printf "$(DIM)[%$(CTR_W)d/$(TOTAL_OBJS)]$(RESET) $(GREEN)%-8s$(RESET) $(BOLD)%-40s$(RESET) -> %-40s\t$(CYAN)%dms$(RESET)\n" \
+				"$$n" "$(CC)" "$<" "$@" "$$ms"; \
+		else \
+			printf "$(DIM)[%$(CTR_W)d/$(TOTAL_OBJS)]$(RESET) $(ORANGE)%-8s$(RESET) $(BOLD)%-40s$(RESET) FAILED\t$(CYAN)%dms$(RESET)\n" \
+				"$$n" "$(CC)" "$<" "$$ms"; \
+			printf "%s\n" "$$out" >&2; \
+		fi \
+	) 200>$(LOCK_FILE); \
+	exit $$rc
+endef
+
+define link_bin
+	@t0=$$(date +%s%N); \
+	printf "$(DIM)[link]$(RESET)   $(BOLD)%-40s$(RESET)" "$@"; \
+	out=$$($(CC) $(LDFLAGS) $(OBJS) -o $@ $(LDLIBS) 2>&1); rc=$$?; \
+	t1=$$(date +%s%N); ms=$$(( (t1 - t0) / 1000000 )); \
+	if [ $$rc -eq 0 ]; then \
+		printf " $(CYAN)%dms$(RESET)\n" $$ms; \
+	else \
+		printf " $(ORANGE)FAILED$(RESET) $(CYAN)%dms$(RESET)\n" $$ms; \
+		printf "%s\n" "$$out" >&2; \
+	fi; \
+	exit $$rc
+endef
+
+.PHONY : all clean install uninstall docs man_install man_uninstall debug-objs
+.DEFAULT_GOAL := all
 
 all : $(name)
 
@@ -188,12 +258,18 @@ uninstall :
 	-rm -r $(DESTDIR)$(HELPDIR)
 
 $(name) : $(OBJS)
-	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
+	$(call link_bin)
 
 $(name)qref: sc.h
 	$(CC) $(CFLAGS) $(LDFLAGS) -DQREF $(QREF_FMT) -DSCNAME=\"$(name)\" -o $(name)qref help.c $(LDLIBS)
 
-$(OBJS) : y.tab.h experres.h statres.h
+# Generated headers are still an order-only prerequisite for every object so
+# the first build (or a grammar change) always regenerates them, while normal
+# rebuilds rely on the -MMD/-MP .d files above for fine-grained incrementality.
+$(OBJS) : | y.tab.h experres.h statres.h
+
+%.o : %.c
+	$(call compile_c)
 
 .INTERMEDIATE: y.tab.c
 y.tab.c	: gram.y
@@ -211,7 +287,20 @@ statres.h : gram.y sres.sed
 	sed -f sres.sed < $< > $@
 
 pvmtbl.o: sc.h pvmtbl.c
-	$(CC) ${CFLAGS} -c -DPSC pvmtbl.c
+	@t0=$$(date +%s%N); \
+	out=$$($(CC) $(CFLAGS) -c -DPSC pvmtbl.c -o $@ 2>&1); rc=$$?; \
+	t1=$$(date +%s%N); ms=$$(( (t1 - t0) / 1000000 )); \
+	if [ $$rc -eq 0 ]; then \
+		printf "$(DIM)[psc]$(RESET)    $(GREEN)%-8s$(RESET) $(BOLD)%-40s$(RESET) -> %-40s\t$(CYAN)%dms$(RESET)\n" "$(CC)" "pvmtbl.c" "$@" "$$ms"; \
+	else \
+		printf "$(DIM)[psc]$(RESET)    $(ORANGE)%-8s$(RESET) $(BOLD)%-40s$(RESET) FAILED\t$(CYAN)%dms$(RESET)\n" "$(CC)" "pvmtbl.c" "$$ms"; \
+		printf "%s\n" "$$out" >&2; \
+	fi; \
+	exit $$rc
+
+debug-objs:
+	@echo "TOTAL_OBJS = $(TOTAL_OBJS)"
+	@echo "$(OBJS)" | tr -s ' ' '\n' | sed '/^$$/d' | sort | uniq -c | sort -rn | head -20
 
 docs:
 	doxygen Doxyfile
@@ -226,8 +315,11 @@ man_uninstall:
 	@mandb
 
 clean:
-	rm -f $(OBJS)
+	rm -f $(OBJS) $(DEPS)
 	rm -f experres.h statres.h y.tab.h
 	rm -f core gram.c y.output pxmalloc.c pvmtbl.c tags $(name)qref
 	rm -f qhelp.c $(name)
-	rm -rf ../docs/ 
+	rm -f $(COUNT_FILE) $(LOCK_FILE)
+	rm -rf ../docs/
+
+-include $(DEPS)
