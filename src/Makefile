@@ -1,5 +1,5 @@
 # Specify the name of the resulting executable file
-name = sc-im
+name = xc
 
 # The base directory where everything should be installed.
 prefix  = /usr/local
@@ -14,9 +14,9 @@ MANDIR  = $(prefix)/share/man/man1
 
 # History directory, relative to $HOME
 HISTORY_DIR= .cache
-HISTORY_FILE=sc-iminfo
+HISTORY_FILE=xcinfo
 # Configuration directory, relative to $HOME
-CONFIG_DIR= .config/sc-im
+CONFIG_DIR= .config/xc
 CONFIG_FILE=scimrc
 
 # Change these to your liking or use `make CC=gcc` etc
@@ -44,7 +44,7 @@ CFLAGS += -DHISTORY_FILE=\"$(HISTORY_FILE)\" -DHISTORY_DIR=\"$(HISTORY_DIR)\"
 # Configuration file, relative to CONFIG_DIR directory
 CFLAGS += -DCONFIG_FILE=\"$(CONFIG_FILE)\" -DCONFIG_DIR=\"$(CONFIG_DIR)\"
 # Input mode history. Same as previous, but for insert mode commands
-CFLAGS += -DINS_HISTORY_FILE=\"sc-iminfo\"
+CFLAGS += -DINS_HISTORY_FILE=\"xcinfo\"
 # Comment out to disable undo/redo support
 CFLAGS += -DUNDO
 # Maximum number of rows in spreadsheet. Up to 1048576
@@ -120,7 +120,7 @@ ifneq (, $(shell which pkg-config))
   endif
 
   # NOTE: libxml and libzip are required for xlsx file import support
-  # sc-im (this fork) is Excel-only: only XLSX/XLS are supported file formats.
+  # xc (this fork) is Excel-only: only XLSX/XLS are supported file formats.
   ifneq ($(shell pkg-config --exists libzip libxml-2.0 || echo 'no'),no)
     CFLAGS += -DXLSX $(shell pkg-config --cflags libxml-2.0 libzip)
     LDLIBS += $(shell pkg-config --libs libxml-2.0 libzip)
@@ -177,7 +177,7 @@ install :
 	install -m 644 doc $(DESTDIR)$(HELPDIR)/$(name)_help
 	install -m 644 $(wildcard plot_*) $(DESTDIR)$(HELPDIR)/
 	install -d $(DESTDIR)$(MANDIR)/
-	install -m 644 sc-im.1 $(DESTDIR)$(MANDIR)/$(name).1
+	install -m 644 xc.1 $(DESTDIR)$(MANDIR)/$(name).1
 	install -d $(DESTDIR)$(THEMEDIR)
 	install -m 644 ../themes/* $(DESTDIR)$(THEMEDIR)
 
@@ -220,9 +220,9 @@ man_install:
 	@cp -r ../docs/man/man3/ /usr/local/share/man/
 	mandb
 
-# "sc-im" MUST match what is in Doxyfile `MAN_EXTENSION = .sc-im.3`
+# "xc" MUST match what is in Doxyfile `MAN_EXTENSION = .xc.3`
 man_uninstall:
-	@rm -rf /usr/local/share/man/man3/*sc-im.3
+	@rm -rf /usr/local/share/man/man3/*xc.3
 	@mandb
 
 clean:
